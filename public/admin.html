@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Worker Location Admin</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+        }
+
+        .header {
+            height: 70px;
+            background: #111827;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 25px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .count {
+            background: #22c55e;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 70px);
+        }
+
+        .worker-label {
+            background: white;
+            border: 2px solid #111827;
+            border-radius: 8px;
+
+            padding: 5px 8px;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            color: #111827;
+
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+
+            white-space: nowrap;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="header">
+
+        <h1>
+            Worker Location Dashboard
+        </h1>
+
+        <div class="count">
+            Workers:
+            <span id="workerCount">0</span>
+        </div>
+
+    </div>
+
+    <div id="map"></div>
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+        const socket = io();
+
+        // Map
+        const map = L.map("map").setView(
+            [20.5937, 78.9629],
+            5
+        );
+
+        // Map tiles
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+
+        const workers = {};
+
+
+        // Receive worker location
+        socket.on("worker-location", (data) => {
+
+            const id = data.id;
+
+            // Create marker first time
+            if (!workers[id]) {
+
+                const icon = L.divIcon({
+
+                    className: "",
+
+                    html:
+                        `<div class="worker-label">
+                            ${data.code}
+                        </div>`,
+
+                    iconSize: [55, 35],
+
+                    iconAnchor: [27, 17]
+                });
+
+                workers[id] = L.marker(
+                    [
+                        data.latitude,
+                        data.longitude
+                    ],
+                    {
+                        icon: icon
+                    }
+                ).addTo(map);
+            }
+
+
+            // Move marker
+            workers[id].setLatLng([
+                data.latitude,
+                data.longitude
+            ]);
+
+
+            // Worker information
+            workers[id].bindPopup(`
+
+                <b>${data.name}</b>
+                <br><br>
+
+                Code: ${data.code}
+
+                <br>
+
+                Accuracy:
+                ${Math.round(data.accuracy)}
+                meters
+
+                <br>
+
+                Last Update:
+                ${new Date(data.time)
+                    .toLocaleTimeString()}
+
+            `);
+
+
+            updateCount();
+
+        });
+
+
+        // Remove worker
+        socket.on("worker-stop", (data) => {
+
+            const id = data.id;
+
+            if (workers[id]) {
+
+                map.removeLayer(
+                    workers[id]
+                );
+
+                delete workers[id];
+
+                updateCount();
+            }
+
+        });
+
+
+        // Update count
+        function updateCount() {
+
+            document.getElementById(
+                "workerCount"
+            ).textContent =
+                Object.keys(workers).length;
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Worker Location</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .box {
+            width: 90%;
+            max-width: 420px;
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        #startBtn {
+            background: #111827;
+            color: white;
+        }
+
+        #stopBtn {
+            background: #dc2626;
+            color: white;
+            display: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #111827;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+
+        <h1>Worker Location</h1>
+
+        <p>Enter your name and start sharing your location.</p>
+
+        <input type="text" id="name" placeholder="Enter your name">
+
+        <div class="code" id="workerCode">---</div>
+
+        <button id="startBtn">
+            Start Sharing Location
+        </button>
+
+        <button id="stopBtn">
+            Stop Sharing
+        </button>
+
+        <div id="status">
+            Location sharing is OFF
+        </div>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io();
+
+        const nameInput = document.getElementById("name");
+        const workerCode = document.getElementById("workerCode");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const statusText = document.getElementById("status");
+
+        let watchId = null;
+
+        // Make 3-letter worker code
+        function makeCode(name) {
+            name = name.trim().toUpperCase();
+
+            if (name.length >= 3) {
+                return name.substring(0, 3);
+            }
+
+            return name.padEnd(3, "-");
+        }
+
+        // Show worker code while typing
+        nameInput.addEventListener("input", () => {
+            workerCode.textContent = makeCode(nameInput.value);
+        });
+
+        // Show code on page load
+        workerCode.textContent = makeCode(nameInput.value);
+
+
+        // START LOCATION SHARING
+        startBtn.addEventListener("click", () => {
+
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert("Please enter your name.");
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported on this device.");
+                return;
+            }
+
+            statusText.textContent = "Requesting location permission...";
+
+            watchId = navigator.geolocation.watchPosition(
+
+                // SUCCESS
+                (position) => {
+
+                    const locationData = {
+                        name: name,
+                        code: makeCode(name),
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        time: new Date().toISOString()
+                    };
+
+                    // Send location to server
+                    socket.emit("worker-location", locationData);
+
+                    statusText.textContent =
+                        "Location sharing is ON ✅";
+
+                    startBtn.style.display = "none";
+                    stopBtn.style.display = "block";
+                },
+
+                // ERROR
+                (error) => {
+
+                    console.log("Location error:", error);
+
+                    statusText.textContent =
+                        "Location permission denied or unavailable.";
+
+                    alert(
+                        "Please allow location permission in your browser."
+                    );
+
+                    startBtn.style.display = "block";
+                    stopBtn.style.display = "none";
+
+                    watchId = null;
+                },
+
+                // OPTIONS
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 10000
+                }
+            );
+        });
+
+
+        // STOP LOCATION SHARING
+        stopBtn.addEventListener("click", () => {
+
+            // Stop GPS watch
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            // Tell server that worker stopped
+            socket.emit("worker-stop", {
+                code: makeCode(nameInput.value)
+            });
+
+            statusText.textContent =
+                "Location sharing is OFF ⛔";
+
+            startBtn.style.display = "block";
+            stopBtn.style.display = "none";
+        });
+
+
+        // If worker closes the page
+        window.addEventListener("beforeunload", () => {
+
+            if (watchId !== null) {
+                socket.emit("worker-stop", {
+                    code: makeCode(nameInput.value)
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
