@@ -7,19 +7,41 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "public")));
+// Public folder
+const publicPath = path.join(__dirname, "public");
 
+app.use(express.static(publicPath));
+
+// Root page -> Worker page
+app.get("/", (req, res) => {
+    res.sendFile(path.join(publicPath, "worker.html"));
+});
+
+// Worker page
+app.get("/worker.html", (req, res) => {
+    res.sendFile(path.join(publicPath, "worker.html"));
+});
+
+// Admin page
+app.get("/admin.html", (req, res) => {
+    res.sendFile(path.join(publicPath, "admin.html"));
+});
+
+
+// Active workers
 const workers = new Map();
 
 io.on("connection", (socket) => {
+
     console.log("Connected:", socket.id);
 
-    // Send already active workers to new admin
+    // Send active workers to newly connected user
     for (const worker of workers.values()) {
         socket.emit("worker-location", worker);
     }
 
-    // Worker location
+
+    // Receive worker location
     socket.on("worker-location", (data) => {
 
         const workerData = {
@@ -34,13 +56,16 @@ io.on("connection", (socket) => {
 
         workers.set(socket.id, workerData);
 
+        // Send location to everyone
         io.emit("worker-location", workerData);
     });
 
-    // Worker manually stops sharing
+
+    // Worker stops sharing
     socket.on("worker-stop", () => {
 
         if (workers.has(socket.id)) {
+
             workers.delete(socket.id);
 
             io.emit("worker-stop", {
@@ -51,10 +76,12 @@ io.on("connection", (socket) => {
         console.log("Worker stopped:", socket.id);
     });
 
-    // Worker closes/disconnects
+
+    // Worker disconnects
     socket.on("disconnect", () => {
 
         if (workers.has(socket.id)) {
+
             workers.delete(socket.id);
 
             io.emit("worker-stop", {
@@ -64,7 +91,9 @@ io.on("connection", (socket) => {
 
         console.log("Disconnected:", socket.id);
     });
+
 });
+
 
 const PORT = process.env.PORT || 3000;
 
