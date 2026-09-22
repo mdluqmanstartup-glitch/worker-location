@@ -15,309 +15,670 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
+            font-family: Arial, Helvetica, sans-serif;
             min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, #ddd6fe 0%, transparent 35%),
+                radial-gradient(circle at bottom right, #bfdbfe 0%, transparent 35%),
+                #f8fafc;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
+            padding: 20px;
         }
 
+        /* MAIN CARD */
+
         .box {
-            width: 90%;
-            max-width: 420px;
-            background: white;
-            padding: 30px;
-            border-radius: 18px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            max-width: 430px;
+
+            background: rgba(255, 255, 255, 0.95);
+
+            border: 1px solid rgba(255, 255, 255, 0.8);
+
+            border-radius: 28px;
+
+            padding: 32px 26px;
+
+            box-shadow:
+                0 25px 60px rgba(15, 23, 42, 0.12);
+
             text-align: center;
         }
 
-        h1 {
-            margin-bottom: 10px;
+
+        /* ICON */
+
+        .icon {
+            width: 64px;
+            height: 64px;
+
+            margin: 0 auto 18px;
+
+            border-radius: 20px;
+
+            background: linear-gradient(135deg,
+                    #7c3aed,
+                    #4f46e5);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+
+            font-size: 30px;
+
+            box-shadow:
+                0 12px 25px rgba(79, 70, 229, 0.25);
         }
 
-        p {
-            color: #666;
-            margin-bottom: 25px;
+
+        /* TITLE */
+
+        h1 {
+            font-size: 29px;
+
+            color: #111827;
+
+            margin-bottom: 8px;
         }
+
+
+        .subtitle {
+            color: #64748b;
+
+            font-size: 15px;
+
+            line-height: 1.5;
+
+            margin-bottom: 28px;
+        }
+
+
+        /* LABEL */
+
+        .label {
+            display: block;
+
+            text-align: left;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            color: #475569;
+
+            margin-bottom: 8px;
+        }
+
+
+        /* INPUT */
 
         input {
             width: 100%;
-            padding: 14px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
+
+            padding: 16px;
+
+            border: 1.5px solid #e2e8f0;
+
+            border-radius: 14px;
+
             font-size: 16px;
-            margin-bottom: 15px;
+
+            outline: none;
+
+            color: #111827;
+
+            background: #f8fafc;
+
+            transition: 0.2s;
         }
+
+        input:focus {
+            border-color: #7c3aed;
+
+            background: white;
+
+            box-shadow:
+                0 0 0 4px rgba(124, 58, 237, 0.10);
+        }
+
+
+        /* WORKER CODE */
+
+        .codeBox {
+            margin: 22px 0;
+
+            padding: 18px;
+
+            border-radius: 18px;
+
+            background: #f5f3ff;
+
+            border: 1px solid #ddd6fe;
+        }
+
+
+        .codeLabel {
+            font-size: 12px;
+
+            font-weight: 700;
+
+            color: #7c3aed;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 5px;
+        }
+
+
+        .code {
+            font-size: 34px;
+
+            font-weight: 800;
+
+            letter-spacing: 5px;
+
+            color: #312e81;
+        }
+
+
+        /* BUTTONS */
 
         button {
             width: 100%;
-            padding: 14px;
+
             border: none;
-            border-radius: 10px;
+
+            padding: 16px;
+
+            border-radius: 15px;
+
             font-size: 16px;
+
+            font-weight: 700;
+
             cursor: pointer;
+
+            transition: 0.2s;
+
             margin-top: 8px;
         }
 
+
         #startBtn {
-            background: #111827;
+            background:
+                linear-gradient(135deg,
+                    #7c3aed,
+                    #4f46e5);
+
             color: white;
+
+            box-shadow:
+                0 10px 22px rgba(79, 70, 229, 0.25);
         }
 
+
+        #startBtn:hover {
+            transform: translateY(-1px);
+        }
+
+
         #stopBtn {
-            background: #dc2626;
+            background:
+                linear-gradient(135deg,
+                    #ef4444,
+                    #dc2626);
+
             color: white;
+
+            display: none;
+
+            box-shadow:
+                0 10px 22px rgba(220, 38, 38, 0.20);
+        }
+
+
+        /* STATUS */
+
+        .statusBox {
+            margin-top: 22px;
+
+            padding: 14px;
+
+            border-radius: 14px;
+
+            background: #f8fafc;
+
+            border: 1px solid #e2e8f0;
+        }
+
+
+        #status {
+            font-size: 14px;
+
+            font-weight: 700;
+
+            color: #475569;
+        }
+
+
+        /* ACCURACY */
+
+        #accuracy {
+            margin-top: 7px;
+
+            font-size: 12px;
+
+            color: #94a3b8;
+
             display: none;
         }
 
-        #status {
-            margin-top: 20px;
-            font-weight: bold;
+
+        /* FOOTER */
+
+        .footer {
+            margin-top: 22px;
+
+            font-size: 11px;
+
+            color: #94a3b8;
         }
 
-        .code {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 15px 0;
-            color: #111827;
+
+        /* MOBILE */
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 14px;
+            }
+
+            .box {
+                padding: 28px 20px;
+
+                border-radius: 24px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+
+            .code {
+                font-size: 31px;
+            }
         }
     </style>
 </head>
+
 
 <body>
 
     <div class="box">
 
-        <h1>Worker Location</h1>
+        <div class="icon">
+            📍
+        </div>
 
-        <p>Enter your name and start sharing your location.</p>
 
-        <input
-            type="text"
-            id="name"
-            placeholder="Enter your name"
-        >
+        <h1>
+            Worker Location
+        </h1>
 
-        <div class="code" id="workerCode">---</div>
 
-        <!-- OFF: Only this button is visible -->
+        <p class="subtitle">
+            Share your live location securely with your administrator.
+        </p>
+
+
+        <label class="label">
+            Worker Name
+        </label>
+
+
+        <input type="text" id="name" placeholder="Enter your name" autocomplete="name">
+
+
+        <div class="codeBox">
+
+            <div class="codeLabel">
+                Worker Code
+            </div>
+
+            <div class="code" id="workerCode">
+                ---
+            </div>
+
+        </div>
+
+
+        <!-- START -->
+
         <button id="startBtn">
-            Start Sharing Location
+            📍 Start Sharing Location
         </button>
 
-        <!-- ON: This button will appear -->
+
+        <!-- STOP -->
+
         <button id="stopBtn" style="display: none;">
-            Stop Sharing
+            ⛔ Stop Sharing
         </button>
 
-        <div id="status">
-            Location sharing is OFF ⛔
+
+        <!-- STATUS -->
+
+        <div class="statusBox">
+
+            <div id="status">
+                🔴 Location sharing is OFF
+            </div>
+
+            <div id="accuracy">
+                GPS Accuracy: --
+            </div>
+
+        </div>
+
+
+        <div class="footer">
+            Your location is shared only while sharing is enabled.
         </div>
 
     </div>
 
+
     <script src="/socket.io/socket.io.js"></script>
 
+
     <script>
+
         const socket = io();
 
-        const nameInput = document.getElementById("name");
-        const workerCode = document.getElementById("workerCode");
-        const startBtn = document.getElementById("startBtn");
-        const stopBtn = document.getElementById("stopBtn");
-        const statusText = document.getElementById("status");
+
+        const nameInput =
+            document.getElementById("name");
+
+        const workerCode =
+            document.getElementById("workerCode");
+
+        const startBtn =
+            document.getElementById("startBtn");
+
+        const stopBtn =
+            document.getElementById("stopBtn");
+
+        const statusText =
+            document.getElementById("status");
+
+        const accuracyText =
+            document.getElementById("accuracy");
+
 
         let watchId = null;
 
 
         // =========================
-        // MAKE WORKER CODE
+        // WORKER CODE
         // =========================
 
         function makeCode(name) {
 
-            name = name.trim().toUpperCase();
+            name = name
+                .trim()
+                .toUpperCase();
+
 
             if (name.length >= 3) {
+
                 return name.substring(0, 3);
+
             }
+
 
             return name.padEnd(3, "-");
         }
 
 
         // =========================
-        // SHOW CODE WHILE TYPING
+        // NAME INPUT
         // =========================
 
-        nameInput.addEventListener("input", () => {
+        nameInput.addEventListener(
+            "input",
+            () => {
 
-            workerCode.textContent =
-                makeCode(nameInput.value);
+                workerCode.textContent =
+                    makeCode(nameInput.value);
 
-        });
+            }
+        );
 
 
         // =========================
         // START LOCATION
         // =========================
 
-        startBtn.addEventListener("click", () => {
+        startBtn.addEventListener(
+            "click",
+            () => {
 
-            const name = nameInput.value.trim();
-
-            if (!name) {
-
-                alert("Please enter your name.");
-
-                return;
-            }
+                const name =
+                    nameInput.value.trim();
 
 
-            if (!navigator.geolocation) {
-
-                alert(
-                    "Geolocation is not supported on this device."
-                );
-
-                return;
-            }
-
-
-            statusText.textContent =
-                "Requesting location permission...";
-
-
-            watchId = navigator.geolocation.watchPosition(
-
-                // SUCCESS
-                (position) => {
-
-                    const locationData = {
-
-                        name: name,
-
-                        code: makeCode(name),
-
-                        latitude:
-                            position.coords.latitude,
-
-                        longitude:
-                            position.coords.longitude,
-
-                        accuracy:
-                            position.coords.accuracy,
-
-                        time:
-                            new Date().toISOString()
-                    };
-
-
-                    // SEND LOCATION TO SERVER
-
-                    socket.emit(
-                        "worker-location",
-                        locationData
-                    );
-
-
-                    // UI ON
-
-                    statusText.textContent =
-                        "Location sharing is ON ✅";
-
-
-                    startBtn.style.display =
-                        "none";
-
-                    stopBtn.style.display =
-                        "block";
-                },
-
-
-                // ERROR
-                (error) => {
-
-                    console.log(
-                        "Location error:",
-                        error
-                    );
-
-
-                    statusText.textContent =
-                        "Location permission denied or unavailable.";
-
+                if (!name) {
 
                     alert(
-                        "Please allow location permission in your browser."
+                        "Please enter your name."
                     );
 
+                    nameInput.focus();
 
-                    startBtn.style.display =
-                        "block";
-
-                    stopBtn.style.display =
-                        "none";
-
-
-                    watchId = null;
-                },
-
-
-                // GPS OPTIONS
-                {
-                    enableHighAccuracy: true,
-
-                    maximumAge: 10000,
-
-                    timeout: 10000
+                    return;
                 }
 
-            );
 
-        });
+                if (!navigator.geolocation) {
+
+                    alert(
+                        "Geolocation is not supported on this device."
+                    );
+
+                    return;
+                }
+
+
+                statusText.textContent =
+                    "🟡 Requesting location permission...";
+
+
+                startBtn.disabled = true;
+
+                startBtn.textContent =
+                    "Getting Location...";
+
+
+                watchId =
+                    navigator.geolocation.watchPosition(
+
+                        // SUCCESS
+
+                        (position) => {
+
+                            const locationData = {
+
+                                name: name,
+
+                                code: makeCode(name),
+
+                                latitude:
+                                    position.coords.latitude,
+
+                                longitude:
+                                    position.coords.longitude,
+
+                                accuracy:
+                                    position.coords.accuracy,
+
+                                time:
+                                    new Date().toISOString()
+                            };
+
+
+                            // SEND LOCATION
+
+                            socket.emit(
+                                "worker-location",
+                                locationData
+                            );
+
+
+                            // UI ON
+
+                            statusText.textContent =
+                                "🟢 Location sharing is ON";
+
+
+                            accuracyText.style.display =
+                                "block";
+
+
+                            accuracyText.textContent =
+                                "GPS Accuracy: " +
+                                Math.round(
+                                    position.coords.accuracy
+                                ) +
+                                " meters";
+
+
+                            startBtn.style.display =
+                                "none";
+
+
+                            stopBtn.style.display =
+                                "block";
+
+
+                            startBtn.disabled =
+                                false;
+                        },
+
+
+                        // ERROR
+
+                        (error) => {
+
+                            console.log(
+                                "Location error:",
+                                error
+                            );
+
+
+                            statusText.textContent =
+                                "🔴 Location permission denied or unavailable";
+
+
+                            alert(
+                                "Please allow location permission in your browser."
+                            );
+
+
+                            startBtn.style.display =
+                                "block";
+
+
+                            stopBtn.style.display =
+                                "none";
+
+
+                            startBtn.disabled =
+                                false;
+
+
+                            startBtn.textContent =
+                                "📍 Start Sharing Location";
+
+
+                            accuracyText.style.display =
+                                "none";
+
+
+                            watchId = null;
+                        },
+
+
+                        // GPS OPTIONS
+
+                        {
+                            enableHighAccuracy: true,
+
+                            maximumAge: 10000,
+
+                            timeout: 10000
+                        }
+
+                    );
+
+            }
+        );
 
 
         // =========================
         // STOP LOCATION
         // =========================
 
-        stopBtn.addEventListener("click", () => {
+        stopBtn.addEventListener(
+            "click",
+            () => {
 
-            // Stop GPS tracking
+                if (watchId !== null) {
 
-            if (watchId !== null) {
+                    navigator.geolocation.clearWatch(
+                        watchId
+                    );
 
-                navigator.geolocation.clearWatch(
-                    watchId
+                    watchId = null;
+                }
+
+
+                // SERVER
+
+                socket.emit(
+                    "worker-stop"
                 );
 
-                watchId = null;
+
+                // UI OFF
+
+                statusText.textContent =
+                    "🔴 Location sharing is OFF";
+
+
+                accuracyText.style.display =
+                    "none";
+
+
+                startBtn.style.display =
+                    "block";
+
+
+                stopBtn.style.display =
+                    "none";
+
+
+                startBtn.textContent =
+                    "📍 Start Sharing Location";
+
             }
-
-
-            // Tell server
-
-            socket.emit(
-                "worker-stop"
-            );
-
-
-            // UI OFF
-
-            statusText.textContent =
-                "Location sharing is OFF ⛔";
-
-
-            startBtn.style.display =
-                "block";
-
-            stopBtn.style.display =
-                "none";
-
-        });
+        );
 
 
         // =========================
@@ -333,6 +694,7 @@
                     socket.emit(
                         "worker-stop"
                     );
+
                 }
 
             }
