@@ -1,710 +1,224 @@
-<!DOCTYPE html>
-<html lang="en">
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-    <title>LiveTrackr</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="/icon.png">
-    <meta name="theme-color" content="#1677ff">
+const publicPath = path.join(__dirname, "public");
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            min-height: 100vh;
-            background:
-                radial-gradient(circle at top left, #ddd6fe 0%, transparent 35%),
-                radial-gradient(circle at bottom right, #bfdbfe 0%, transparent 35%),
-                #f8fafc;
+// =====================================
+// STATIC FILES
+// =====================================
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+app.use(express.static(publicPath));
 
-            padding: 20px;
-        }
 
-        /* MAIN CARD */
+// =====================================
+// ANDROID APP LINKS
+// =====================================
 
-        .box {
-            width: 100%;
-            max-width: 430px;
+app.get("/.well-known/assetlinks.json", (req, res) => {
 
-            background: rgba(255, 255, 255, 0.95);
+    res.status(200);
 
-            border: 1px solid rgba(255, 255, 255, 0.8);
+    res.type("application/json");
 
-            border-radius: 28px;
+    res.send(JSON.stringify([
+        {
+            relation: [
+                "delegate_permission/common.handle_all_urls"
+            ],
 
-            padding: 32px 26px;
+            target: {
+                namespace: "android_app",
 
-            box-shadow:
-                0 25px 60px rgba(15, 23, 42, 0.12);
+                package_name: "com.livetrackr.app",
 
-            text-align: center;
-        }
-
-
-        /* ICON */
-
-        .icon {
-            width: 64px;
-            height: 64px;
-
-            margin: 0 auto 18px;
-
-            border-radius: 20px;
-
-            background: linear-gradient(135deg,
-                    #7c3aed,
-                    #4f46e5);
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            color: white;
-
-            font-size: 30px;
-
-            box-shadow:
-                0 12px 25px rgba(79, 70, 229, 0.25);
-        }
-
-
-        /* TITLE */
-
-        h1 {
-            font-size: 29px;
-
-            color: #111827;
-
-            margin-bottom: 8px;
-        }
-
-
-        .subtitle {
-            color: #64748b;
-
-            font-size: 15px;
-
-            line-height: 1.5;
-
-            margin-bottom: 28px;
-        }
-
-
-        /* LABEL */
-
-        .label {
-            display: block;
-
-            text-align: left;
-
-            font-size: 13px;
-
-            font-weight: 700;
-
-            color: #475569;
-
-            margin-bottom: 8px;
-        }
-
-
-        /* INPUT */
-
-        input {
-            width: 100%;
-
-            padding: 16px;
-
-            border: 1.5px solid #e2e8f0;
-
-            border-radius: 14px;
-
-            font-size: 16px;
-
-            outline: none;
-
-            color: #111827;
-
-            background: #f8fafc;
-
-            transition: 0.2s;
-        }
-
-        input:focus {
-            border-color: #7c3aed;
-
-            background: white;
-
-            box-shadow:
-                0 0 0 4px rgba(124, 58, 237, 0.10);
-        }
-
-
-        /* WORKER CODE */
-
-        .codeBox {
-            margin: 22px 0;
-
-            padding: 18px;
-
-            border-radius: 18px;
-
-            background: #f5f3ff;
-
-            border: 1px solid #ddd6fe;
-        }
-
-
-        .codeLabel {
-            font-size: 12px;
-
-            font-weight: 700;
-
-            color: #7c3aed;
-
-            text-transform: uppercase;
-
-            letter-spacing: 1px;
-
-            margin-bottom: 5px;
-        }
-
-
-        .code {
-            font-size: 34px;
-
-            font-weight: 800;
-
-            letter-spacing: 5px;
-
-            color: #312e81;
-        }
-
-
-        /* BUTTONS */
-
-        button {
-            width: 100%;
-
-            border: none;
-
-            padding: 16px;
-
-            border-radius: 15px;
-
-            font-size: 16px;
-
-            font-weight: 700;
-
-            cursor: pointer;
-
-            transition: 0.2s;
-
-            margin-top: 8px;
-        }
-
-
-        #startBtn {
-            background:
-                linear-gradient(135deg,
-                    #7c3aed,
-                    #4f46e5);
-
-            color: white;
-
-            box-shadow:
-                0 10px 22px rgba(79, 70, 229, 0.25);
-        }
-
-
-        #startBtn:hover {
-            transform: translateY(-1px);
-        }
-
-
-        #stopBtn {
-            background:
-                linear-gradient(135deg,
-                    #ef4444,
-                    #dc2626);
-
-            color: white;
-
-            display: none;
-
-            box-shadow:
-                0 10px 22px rgba(220, 38, 38, 0.20);
-        }
-
-
-        /* STATUS */
-
-        .statusBox {
-            margin-top: 22px;
-
-            padding: 14px;
-
-            border-radius: 14px;
-
-            background: #f8fafc;
-
-            border: 1px solid #e2e8f0;
-        }
-
-
-        #status {
-            font-size: 14px;
-
-            font-weight: 700;
-
-            color: #475569;
-        }
-
-
-        /* ACCURACY */
-
-        #accuracy {
-            margin-top: 7px;
-
-            font-size: 12px;
-
-            color: #94a3b8;
-
-            display: none;
-        }
-
-
-        /* FOOTER */
-
-        .footer {
-            margin-top: 22px;
-
-            font-size: 11px;
-
-            color: #94a3b8;
-        }
-
-
-        /* MOBILE */
-
-        @media (max-width: 480px) {
-
-            body {
-                padding: 14px;
-            }
-
-            .box {
-                padding: 28px 20px;
-
-                border-radius: 24px;
-            }
-
-            h1 {
-                font-size: 27px;
-            }
-
-            .code {
-                font-size: 31px;
+                sha256_cert_fingerprints: [
+                    "8D:2F:E5:21:1F:FA:C7:72:6C:EB:C4:6D:8F:1D:78:19:6C:DC:A7:0C:7A:4A:61:88:DA:7F:BD:6C:DF:67:99:B1"
+                ]
             }
         }
-    </style>
-</head>
+    ]));
+
+});
 
 
-<body>
+// =====================================
+// WORKER PAGE
+// =====================================
 
-    <div class="box">
+app.get("/", (req, res) => {
 
-        <div class="icon">
-            📍
-        </div>
+    res.sendFile(
+        path.join(publicPath, "worker.html")
+    );
 
-
-        <h1>
-            LiveTrackr
-        </h1>
-
-
-        <p class="subtitle">
-            Share your live location securely with your administrator.
-        </p>
+});
 
 
-        <label class="label">
-            Worker Name
-        </label>
+app.get("/worker.html", (req, res) => {
+
+    res.sendFile(
+        path.join(publicPath, "worker.html")
+    );
+
+});
 
 
-        <input type="text" id="name" placeholder="Enter your name" autocomplete="name">
+// =====================================
+// ADMIN PAGE
+// =====================================
+
+app.get("/admin.html", (req, res) => {
+
+    res.sendFile(
+        path.join(publicPath, "admin.html")
+    );
+
+});
 
 
-        <div class="codeBox">
+// =====================================
+// WORKERS
+// =====================================
 
-            <div class="codeLabel">
-                Worker Code
-            </div>
-
-            <div class="code" id="workerCode">
-                ---
-            </div>
-
-        </div>
+const workers = new Map();
 
 
-        <!-- START -->
+io.on("connection", (socket) => {
 
-        <button id="startBtn">
-            📍 Start Sharing Location
-        </button>
-
-
-        <!-- STOP -->
-
-        <button id="stopBtn" style="display: none;">
-            ⛔ Stop Sharing
-        </button>
+    console.log(
+        "Connected:",
+        socket.id
+    );
 
 
-        <!-- STATUS -->
+    // Send existing workers
+    for (const worker of workers.values()) {
 
-        <div class="statusBox">
+        socket.emit(
+            "worker-location",
+            worker
+        );
 
-            <div id="status">
-                🔴 Location sharing is OFF
-            </div>
-
-            <div id="accuracy">
-                GPS Accuracy: --
-            </div>
-
-        </div>
+    }
 
 
-        <div class="footer">
-            Your location is shared only while sharing is enabled.
-        </div>
+    // Receive worker location
+    socket.on("worker-location", (data) => {
 
-    </div>
+        const workerData = {
 
+            id: socket.id,
 
-    <script src="/socket.io/socket.io.js"></script>
+            name: data.name,
 
+            code: data.code,
 
-    <script>
+            latitude: data.latitude,
 
-        const socket = io();
+            longitude: data.longitude,
 
+            accuracy: data.accuracy,
 
-        const nameInput =
-            document.getElementById("name");
+            time: data.time
 
-        const workerCode =
-            document.getElementById("workerCode");
-
-        const startBtn =
-            document.getElementById("startBtn");
-
-        const stopBtn =
-            document.getElementById("stopBtn");
-
-        const statusText =
-            document.getElementById("status");
-
-        const accuracyText =
-            document.getElementById("accuracy");
+        };
 
 
-        let watchId = null;
-
-
-        // =========================
-        // WORKER CODE
-        // =========================
-
-        function makeCode(name) {
-
-            name = name
-                .trim()
-                .toUpperCase();
-
-
-            if (name.length >= 3) {
-
-                return name.substring(0, 3);
-
-            }
-
-
-            return name.padEnd(3, "-");
-        }
-
-
-        // =========================
-        // NAME INPUT
-        // =========================
-
-        nameInput.addEventListener(
-            "input",
-            () => {
-
-                workerCode.textContent =
-                    makeCode(nameInput.value);
-
-            }
+        workers.set(
+            socket.id,
+            workerData
         );
 
 
-        // =========================
-        // START LOCATION
-        // =========================
-
-        startBtn.addEventListener(
-            "click",
-            () => {
-
-                const name =
-                    nameInput.value.trim();
-
-
-                if (!name) {
-
-                    alert(
-                        "Please enter your name."
-                    );
-
-                    nameInput.focus();
-
-                    return;
-                }
-
-
-                if (!navigator.geolocation) {
-
-                    alert(
-                        "Geolocation is not supported on this device."
-                    );
-
-                    return;
-                }
-
-
-                statusText.textContent =
-                    "🟡 Requesting location permission...";
-
-
-                startBtn.disabled = true;
-
-                startBtn.textContent =
-                    "Getting Location...";
-
-
-                watchId =
-                    navigator.geolocation.watchPosition(
-
-                        // SUCCESS
-
-                        (position) => {
-
-                            const locationData = {
-
-                                name: name,
-
-                                code: makeCode(name),
-
-                                latitude:
-                                    position.coords.latitude,
-
-                                longitude:
-                                    position.coords.longitude,
-
-                                accuracy:
-                                    position.coords.accuracy,
-
-                                time:
-                                    new Date().toISOString()
-                            };
-
-
-                            // SEND LOCATION
-
-                            socket.emit(
-                                "worker-location",
-                                locationData
-                            );
-
-
-                            // UI ON
-
-                            statusText.textContent =
-                                "🟢 Location sharing is ON";
-
-
-                            accuracyText.style.display =
-                                "block";
-
-
-                            accuracyText.textContent =
-                                "GPS Accuracy: " +
-                                Math.round(
-                                    position.coords.accuracy
-                                ) +
-                                " meters";
-
-
-                            startBtn.style.display =
-                                "none";
-
-
-                            stopBtn.style.display =
-                                "block";
-
-
-                            startBtn.disabled =
-                                false;
-                        },
-
-
-                        // ERROR
-
-                        (error) => {
-
-                            console.log(
-                                "Location error:",
-                                error
-                            );
-
-
-                            statusText.textContent =
-                                "🔴 Location permission denied or unavailable";
-
-
-                            alert(
-                                "Please allow location permission in your browser."
-                            );
-
-
-                            startBtn.style.display =
-                                "block";
-
-
-                            stopBtn.style.display =
-                                "none";
-
-
-                            startBtn.disabled =
-                                false;
-
-
-                            startBtn.textContent =
-                                "📍 Start Sharing Location";
-
-
-                            accuracyText.style.display =
-                                "none";
-
-
-                            watchId = null;
-                        },
-
-
-                        // GPS OPTIONS
-
-                        {
-                            enableHighAccuracy: true,
-
-                            maximumAge: 10000,
-
-                            timeout: 10000
-                        }
-
-                    );
-
-            }
+        io.emit(
+            "worker-location",
+            workerData
         );
 
+    });
 
-        // =========================
-        // STOP LOCATION
-        // =========================
 
-        stopBtn.addEventListener(
-            "click",
-            () => {
+    // Worker stopped sharing
+    socket.on("worker-stop", () => {
 
-                if (watchId !== null) {
+        if (workers.has(socket.id)) {
 
-                    navigator.geolocation.clearWatch(
-                        watchId
-                    );
+            workers.delete(
+                socket.id
+            );
 
-                    watchId = null;
+
+            io.emit(
+                "worker-stop",
+                {
+                    id: socket.id
                 }
+            );
+
+        }
 
 
-                // SERVER
-
-                socket.emit(
-                    "worker-stop"
-                );
-
-
-                // UI OFF
-
-                statusText.textContent =
-                    "🔴 Location sharing is OFF";
-
-
-                accuracyText.style.display =
-                    "none";
-
-
-                startBtn.style.display =
-                    "block";
-
-
-                stopBtn.style.display =
-                    "none";
-
-
-                startBtn.textContent =
-                    "📍 Start Sharing Location";
-
-            }
+        console.log(
+            "Worker stopped:",
+            socket.id
         );
 
+    });
 
-        // =========================
-        // PAGE CLOSE
-        // =========================
 
-        window.addEventListener(
-            "beforeunload",
-            () => {
+    // Worker disconnected
+    socket.on("disconnect", () => {
 
-                if (watchId !== null) {
+        if (workers.has(socket.id)) {
 
-                    socket.emit(
-                        "worker-stop"
-                    );
+            workers.delete(
+                socket.id
+            );
 
+
+            io.emit(
+                "worker-stop",
+                {
+                    id: socket.id
                 }
+            );
 
-            }
+        }
+
+
+        console.log(
+            "Disconnected:",
+            socket.id
         );
 
-    </script>
+    });
 
-</body>
+});
 
-</html>
+
+// =====================================
+// SERVER
+// =====================================
+
+const PORT =
+    process.env.PORT || 3000;
+
+
+server.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            `Server running on port ${PORT}`
+        );
+
+    }
+);
