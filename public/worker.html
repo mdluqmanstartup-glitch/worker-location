@@ -1,224 +1,666 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+<!DOCTYPE html>
+<html lang="en">
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+<head>
 
-const publicPath = path.join(__dirname, "public");
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Worker Location</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    #ddd6fe 0%,
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    #bfdbfe 0%,
+                    transparent 35%
+                ),
+                #f8fafc;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 20px;
+        }
 
 
-// =====================================
-// STATIC FILES
-// =====================================
+        .container {
+            width: 100%;
+            max-width: 650px;
+        }
 
-app.use(express.static(publicPath));
+
+        .top-section {
+            text-align: center;
+            margin-bottom: 28px;
+        }
 
 
-// =====================================
-// ANDROID APP LINKS
-// =====================================
+        .location-icon {
+            width: 90px;
+            height: 90px;
 
-app.get("/.well-known/assetlinks.json", (req, res) => {
+            margin: 0 auto 20px;
 
-    res.status(200);
+            border-radius: 24px;
 
-    res.type("application/json");
+            background: #ede9fe;
 
-    res.send(JSON.stringify([
-        {
-            relation: [
-                "delegate_permission/common.handle_all_urls"
-            ],
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-            target: {
-                namespace: "android_app",
+            font-size: 48px;
 
-                package_name: "com.livetrackr.app",
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.08);
+        }
 
-                sha256_cert_fingerprints: [
-                    "8D:2F:E5:21:1F:FA:C7:72:6C:EB:C4:6D:8F:1D:78:19:6C:DC:A7:0C:7A:4A:61:88:DA:7F:BD:6C:DF:67:99:B1"
-                ]
+
+        h1 {
+            font-size: 36px;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 19px;
+            line-height: 1.5;
+        }
+
+
+        .card {
+            background: white;
+
+            border-radius: 28px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.12);
+
+            border: 1px solid #e5e7eb;
+        }
+
+
+        .label {
+            display: block;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            color: #6b7280;
+
+            margin-bottom: 12px;
+        }
+
+
+        #name {
+            width: 100%;
+
+            height: 64px;
+
+            border: 2px solid #9ca3af;
+
+            border-radius: 22px;
+
+            padding: 0 22px;
+
+            font-size: 21px;
+
+            outline: none;
+        }
+
+
+        #name:focus {
+            border-color: #6366f1;
+        }
+
+
+        .code-title {
+            margin-top: 30px;
+        }
+
+
+        #workerCode {
+            height: 90px;
+
+            width: 100%;
+
+            background: #f5f3fa;
+
+            border-radius: 20px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 40px;
+
+            font-weight: bold;
+
+            letter-spacing: 5px;
+
+            color: #111827;
+
+            margin-bottom: 30px;
+        }
+
+
+        button {
+            width: 100%;
+
+            height: 64px;
+
+            border-radius: 20px;
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            border: none;
+
+            margin-top: 12px;
+        }
+
+
+        #startBtn {
+            background: #6366a6;
+
+            color: white;
+        }
+
+
+        #startBtn:disabled {
+            opacity: 0.55;
+
+            cursor: not-allowed;
+        }
+
+
+        #stopBtn {
+            display: none;
+
+            background: white;
+
+            color: #dc2626;
+
+            border: 2px solid #dc2626;
+        }
+
+
+        .status-box {
+            margin-top: 28px;
+
+            padding: 22px;
+
+            border-radius: 22px;
+
+            background: #ecfdf5;
+
+            border: 1px solid #bbf7d0;
+        }
+
+
+        .status-title {
+            color: #16a34a;
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            margin-bottom: 6px;
+        }
+
+
+        .status-text {
+            color: #4b5563;
+
+            font-size: 16px;
+
+            line-height: 1.5;
+        }
+
+
+        .status-dot {
+            display: inline-block;
+
+            width: 17px;
+            height: 17px;
+
+            background: #16a34a;
+
+            border-radius: 50%;
+
+            margin-right: 10px;
+        }
+
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 16px;
             }
+
+            .location-icon {
+                width: 82px;
+                height: 82px;
+                font-size: 42px;
+            }
+
+            h1 {
+                font-size: 31px;
+            }
+
+            .subtitle {
+                font-size: 17px;
+            }
+
+            .card {
+                padding: 24px 18px;
+                border-radius: 24px;
+            }
+
+            #name {
+                height: 60px;
+                font-size: 19px;
+            }
+
+            #workerCode {
+                height: 82px;
+                font-size: 34px;
+            }
+
+            button {
+                height: 60px;
+                font-size: 18px;
+            }
+
         }
-    ]));
 
-});
+    </style>
 
-
-// =====================================
-// WORKER PAGE
-// =====================================
-
-app.get("/", (req, res) => {
-
-    res.sendFile(
-        path.join(publicPath, "worker.html")
-    );
-
-});
+</head>
 
 
-app.get("/worker.html", (req, res) => {
+<body>
 
-    res.sendFile(
-        path.join(publicPath, "worker.html")
-    );
-
-});
+    <div class="container">
 
 
-// =====================================
-// ADMIN PAGE
-// =====================================
+        <div class="top-section">
 
-app.get("/admin.html", (req, res) => {
+            <div class="location-icon">
+                📍
+            </div>
 
-    res.sendFile(
-        path.join(publicPath, "admin.html")
-    );
+            <h1>
+                Worker Location
+            </h1>
 
-});
+            <div class="subtitle">
+                Share your live location securely<br>
+                with your administrator.
+            </div>
 
-
-// =====================================
-// WORKERS
-// =====================================
-
-const workers = new Map();
+        </div>
 
 
-io.on("connection", (socket) => {
-
-    console.log(
-        "Connected:",
-        socket.id
-    );
+        <div class="card">
 
 
-    // Send existing workers
-    for (const worker of workers.values()) {
+            <label
+                class="label"
+                for="name"
+            >
+                WORKER NAME
+            </label>
 
-        socket.emit(
-            "worker-location",
-            worker
+
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter your name"
+                autocomplete="name"
+            >
+
+
+            <label class="label code-title">
+                WORKER CODE
+            </label>
+
+
+            <div id="workerCode">
+                ---
+            </div>
+
+
+            <button
+                id="startBtn"
+            >
+                📍 Start Sharing Location
+            </button>
+
+
+            <button
+                id="stopBtn"
+            >
+                ■ Stop Sharing
+            </button>
+
+
+        </div>
+
+
+        <div class="status-box">
+
+            <div class="status-title">
+
+                <span
+                    class="status-dot"
+                    id="statusDot"
+                ></span>
+
+                <span id="statusTitle">
+                    Location Sharing Inactive
+                </span>
+
+            </div>
+
+
+            <div
+                class="status-text"
+                id="status"
+            >
+                Your location is not being shared.
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script>
+
+        const socket = io();
+
+
+        const nameInput =
+            document.getElementById("name");
+
+        const workerCode =
+            document.getElementById("workerCode");
+
+        const startBtn =
+            document.getElementById("startBtn");
+
+        const stopBtn =
+            document.getElementById("stopBtn");
+
+        const status =
+            document.getElementById("status");
+
+        const statusTitle =
+            document.getElementById("statusTitle");
+
+        const statusDot =
+            document.getElementById("statusDot");
+
+
+        let watchId = null;
+
+
+        // =========================
+        // WORKER CODE
+        // =========================
+
+        function makeCode(name) {
+
+            name =
+                name.trim().toUpperCase();
+
+
+            if (name.length >= 3) {
+
+                return name.substring(0, 3);
+
+            }
+
+
+            return name.padEnd(3, "-");
+
+        }
+
+
+        nameInput.addEventListener(
+            "input",
+            () => {
+
+                workerCode.textContent =
+                    makeCode(
+                        nameInput.value
+                    );
+
+            }
         );
 
-    }
 
-
-    // Receive worker location
-    socket.on("worker-location", (data) => {
-
-        const workerData = {
-
-            id: socket.id,
-
-            name: data.name,
-
-            code: data.code,
-
-            latitude: data.latitude,
-
-            longitude: data.longitude,
-
-            accuracy: data.accuracy,
-
-            time: data.time
-
-        };
-
-
-        workers.set(
-            socket.id,
-            workerData
-        );
-
-
-        io.emit(
-            "worker-location",
-            workerData
-        );
-
-    });
-
-
-    // Worker stopped sharing
-    socket.on("worker-stop", () => {
-
-        if (workers.has(socket.id)) {
-
-            workers.delete(
-                socket.id
+        workerCode.textContent =
+            makeCode(
+                nameInput.value
             );
 
 
-            io.emit(
-                "worker-stop",
-                {
-                    id: socket.id
+        // =========================
+        // START SHARING
+        // =========================
+
+        startBtn.addEventListener(
+            "click",
+            () => {
+
+                const name =
+                    nameInput.value.trim();
+
+
+                if (!name) {
+
+                    alert(
+                        "Please enter your name."
+                    );
+
+                    return;
+
                 }
-            );
-
-        }
 
 
-        console.log(
-            "Worker stopped:",
-            socket.id
-        );
+                if (!navigator.geolocation) {
 
-    });
+                    alert(
+                        "Location is not supported on this device."
+                    );
 
+                    return;
 
-    // Worker disconnected
-    socket.on("disconnect", () => {
-
-        if (workers.has(socket.id)) {
-
-            workers.delete(
-                socket.id
-            );
-
-
-            io.emit(
-                "worker-stop",
-                {
-                    id: socket.id
                 }
-            );
-
-        }
 
 
-        console.log(
-            "Disconnected:",
-            socket.id
+                statusTitle.textContent =
+                    "Location Sharing Active";
+
+
+                status.textContent =
+                    "Requesting your location...";
+
+
+                startBtn.style.display =
+                    "none";
+
+
+                stopBtn.style.display =
+                    "block";
+
+
+                watchId =
+                    navigator.geolocation.watchPosition(
+
+                        (position) => {
+
+                            const locationData = {
+
+                                name: name,
+
+                                code:
+                                    makeCode(name),
+
+                                latitude:
+                                    position.coords.latitude,
+
+                                longitude:
+                                    position.coords.longitude,
+
+                                accuracy:
+                                    position.coords.accuracy,
+
+                                time:
+                                    new Date().toISOString()
+
+                            };
+
+
+                            socket.emit(
+                                "worker-location",
+                                locationData
+                            );
+
+
+                            statusTitle.textContent =
+                                "Location Sharing Active";
+
+
+                            status.textContent =
+                                "Your location is being shared securely.";
+
+                        },
+
+
+                        (error) => {
+
+                            console.log(
+                                "Location error:",
+                                error
+                            );
+
+
+                            statusTitle.textContent =
+                                "Location Error";
+
+
+                            status.textContent =
+                                error.message;
+
+
+                            startBtn.style.display =
+                                "block";
+
+
+                            stopBtn.style.display =
+                                "none";
+
+                        },
+
+
+                        {
+                            enableHighAccuracy: true,
+
+                            maximumAge: 5000,
+
+                            timeout: 15000
+                        }
+
+                    );
+
+            }
         );
 
-    });
 
-});
+        // =========================
+        // STOP SHARING
+        // =========================
+
+        stopBtn.addEventListener(
+            "click",
+            () => {
+
+                if (watchId !== null) {
+
+                    navigator.geolocation.clearWatch(
+                        watchId
+                    );
+
+                    watchId = null;
+
+                }
 
 
-// =====================================
-// SERVER
-// =====================================
-
-const PORT =
-    process.env.PORT || 3000;
+                // Tell server to remove worker
+                socket.emit(
+                    "worker-stop"
+                );
 
 
-server.listen(
-    PORT,
-    "0.0.0.0",
-    () => {
+                statusTitle.textContent =
+                    "Location Sharing Inactive";
 
-        console.log(
-            `Server running on port ${PORT}`
+
+                status.textContent =
+                    "Your location is not being shared.";
+
+
+                startBtn.style.display =
+                    "block";
+
+
+                stopBtn.style.display =
+                    "none";
+
+            }
         );
 
-    }
-);
+    </script>
+
+
+</body>
+
+</html>
