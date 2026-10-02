@@ -9,62 +9,78 @@ const io = new Server(server);
 
 const publicPath = path.join(__dirname, "public");
 
+
+// =====================================
+// ANDROID APP LINKS
+// .well-known/assetlinks.json
+// =====================================
+
+app.use(
+    "/.well-known",
+    express.static(
+        path.join(publicPath, ".well-known"),
+        {
+            dotfiles: "allow"
+        }
+    )
+);
+
+
+// =====================================
+// STATIC FILES
+// =====================================
+
 app.use(express.static(publicPath));
 
 
-// ===============================
+// =====================================
 // WORKER PAGE
-// ===============================
+// =====================================
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(publicPath, "worker.html"));
+    res.sendFile(
+        path.join(publicPath, "worker.html")
+    );
 });
 
 app.get("/worker.html", (req, res) => {
-    res.sendFile(path.join(publicPath, "worker.html"));
+    res.sendFile(
+        path.join(publicPath, "worker.html")
+    );
 });
 
 
-// ===============================
+// =====================================
 // ADMIN PAGE
-// ===============================
+// =====================================
 
 app.get("/admin.html", (req, res) => {
-    res.sendFile(path.join(publicPath, "admin.html"));
-});
-
-
-// ===============================
-// ANDROID APP LINKS
-// ===============================
-
-app.get("/.well-known/assetlinks.json", (req, res) => {
-
-    res.type("application/json");
-
     res.sendFile(
-        path.join(
-            publicPath,
-            ".well-known",
-            "assetlinks.json"
-        )
+        path.join(publicPath, "admin.html")
     );
-
 });
 
 
-// ===============================
-// WORKERS
-// ===============================
+// =====================================
+// WORKERS STORAGE
+// =====================================
 
 const workers = new Map();
+
+
+// =====================================
+// SOCKET.IO
+// =====================================
 
 io.on("connection", (socket) => {
 
     console.log("Connected:", socket.id);
 
 
-    // Send existing workers
+    // ---------------------------------
+    // SEND EXISTING WORKERS
+    // ---------------------------------
+
     for (const worker of workers.values()) {
 
         socket.emit(
@@ -75,7 +91,10 @@ io.on("connection", (socket) => {
     }
 
 
-    // Receive worker location
+    // ---------------------------------
+    // RECEIVE WORKER LOCATION
+    // ---------------------------------
+
     socket.on("worker-location", (data) => {
 
         const workerData = {
@@ -103,6 +122,7 @@ io.on("connection", (socket) => {
         );
 
 
+        // Send location to everyone
         io.emit(
             "worker-location",
             workerData
@@ -111,12 +131,18 @@ io.on("connection", (socket) => {
     });
 
 
-    // Worker stopped sharing
+    // ---------------------------------
+    // WORKER STOPPED SHARING
+    // ---------------------------------
+
     socket.on("worker-stop", () => {
 
         if (workers.has(socket.id)) {
 
-            workers.delete(socket.id);
+            workers.delete(
+                socket.id
+            );
+
 
             io.emit(
                 "worker-stop",
@@ -126,6 +152,7 @@ io.on("connection", (socket) => {
             );
 
         }
+
 
         console.log(
             "Worker stopped:",
@@ -135,12 +162,18 @@ io.on("connection", (socket) => {
     });
 
 
-    // Worker disconnected
+    // ---------------------------------
+    // WORKER DISCONNECTED
+    // ---------------------------------
+
     socket.on("disconnect", () => {
 
         if (workers.has(socket.id)) {
 
-            workers.delete(socket.id);
+            workers.delete(
+                socket.id
+            );
+
 
             io.emit(
                 "worker-stop",
@@ -150,6 +183,7 @@ io.on("connection", (socket) => {
             );
 
         }
+
 
         console.log(
             "Disconnected:",
@@ -161,12 +195,13 @@ io.on("connection", (socket) => {
 });
 
 
-// ===============================
+// =====================================
 // SERVER
-// ===============================
+// =====================================
 
 const PORT =
     process.env.PORT || 3000;
+
 
 server.listen(
     PORT,
