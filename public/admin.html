@@ -31,6 +31,7 @@
             background: #f3f4f6;
         }
 
+
         /* =========================
            HEADER
         ========================= */
@@ -50,10 +51,12 @@
             gap: 15px;
         }
 
+
         .header h1 {
             font-size: 24px;
             line-height: 1.2;
         }
+
 
         /* =========================
            HEADER ACTIONS
@@ -64,6 +67,7 @@
             align-items: center;
             gap: 12px;
         }
+
 
         /* =========================
            SHARE BUTTON
@@ -86,13 +90,16 @@
             white-space: nowrap;
         }
 
+
         #shareWorkerBtn:hover {
             opacity: 0.9;
         }
 
+
         #shareWorkerBtn:active {
             transform: scale(0.98);
         }
+
 
         /* =========================
            WORKER COUNT
@@ -110,6 +117,7 @@
             white-space: nowrap;
         }
 
+
         /* =========================
            MAP
         ========================= */
@@ -119,6 +127,7 @@
             height: calc(100vh - 70px);
             min-height: 500px;
         }
+
 
         /* =========================
            WORKER LABEL
@@ -144,6 +153,7 @@
             white-space: nowrap;
         }
 
+
         /* =========================
            MOBILE
         ========================= */
@@ -158,29 +168,35 @@
                 gap: 8px;
             }
 
+
             .header h1 {
                 font-size: 18px;
             }
 
+
             .header-actions {
                 gap: 6px;
             }
+
 
             #shareWorkerBtn {
                 padding: 8px 9px;
                 font-size: 12px;
             }
 
+
             .count {
                 padding: 8px 9px;
                 font-size: 12px;
             }
+
 
             #map {
                 height: calc(100vh - 76px);
             }
 
         }
+
 
         /* =========================
            SMALL MOBILE
@@ -193,14 +209,17 @@
                 align-items: stretch;
             }
 
+
             .header h1 {
                 text-align: center;
                 font-size: 19px;
             }
 
+
             .header-actions {
                 justify-content: center;
             }
+
 
             #map {
                 height: calc(100vh - 125px);
@@ -349,14 +368,16 @@
                 }
 
 
-                // Move marker
+                // Update worker position
+
                 workers[id].setLatLng([
                     data.latitude,
                     data.longitude
                 ]);
 
 
-                // Worker information
+                // Worker information popup
+
                 workers[id].bindPopup(`
 
                     <b>${data.name}</b>
@@ -404,7 +425,9 @@
                         workers[id]
                     );
 
+
                     delete workers[id];
+
 
                     updateCount();
 
@@ -446,13 +469,17 @@
                 workerLink;
 
 
+            // WhatsApp link
+
             const whatsappUrl =
                 "https://wa.me/?text=" +
                 encodeURIComponent(message);
 
 
             // Open WhatsApp
-            window.location.href = whatsappUrl;
+
+            window.location.href =
+                whatsappUrl;
 
         }
 
