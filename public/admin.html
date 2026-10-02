@@ -12,9 +12,10 @@
 
     <title>Worker Location Admin</title>
 
+    <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
     >
 
     <style>
@@ -56,6 +57,7 @@
         #map {
             width: 100%;
             height: calc(100vh - 70px);
+            min-height: 500px;
         }
 
         .worker-label {
@@ -88,31 +90,46 @@
         </h1>
 
         <div class="count">
+
             Workers:
             <span id="workerCount">0</span>
+
         </div>
 
     </div>
 
+
     <div id="map"></div>
 
+
+    <!-- Leaflet JS -->
     <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+        src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
+    <!-- Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
+
 
     <script>
 
         const socket = io();
 
-        // Map
+
+        // =========================
+        // MAP
+        // =========================
+
         const map = L.map("map").setView(
             [20.5937, 78.9629],
             5
         );
 
-        // Map tiles
+
+        // =========================
+        // MAP TILES
+        // =========================
+
         L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
@@ -125,10 +142,14 @@
         const workers = {};
 
 
-        // Receive worker location
+        // =========================
+        // WORKER LOCATION
+        // =========================
+
         socket.on("worker-location", (data) => {
 
             const id = data.id;
+
 
             // Create marker first time
             if (!workers[id]) {
@@ -145,7 +166,9 @@
                     iconSize: [55, 35],
 
                     iconAnchor: [27, 17]
+
                 });
+
 
                 workers[id] = L.marker(
                     [
@@ -156,10 +179,12 @@
                         icon: icon
                     }
                 ).addTo(map);
+
             }
 
 
             // Move marker
+
             workers[id].setLatLng([
                 data.latitude,
                 data.longitude
@@ -167,9 +192,11 @@
 
 
             // Worker information
+
             workers[id].bindPopup(`
 
                 <b>${data.name}</b>
+
                 <br><br>
 
                 Code: ${data.code}
@@ -194,10 +221,14 @@
         });
 
 
-        // Remove worker
+        // =========================
+        // REMOVE WORKER
+        // =========================
+
         socket.on("worker-stop", (data) => {
 
             const id = data.id;
+
 
             if (workers[id]) {
 
@@ -208,18 +239,23 @@
                 delete workers[id];
 
                 updateCount();
+
             }
 
         });
 
 
-        // Update count
+        // =========================
+        // UPDATE COUNT
+        // =========================
+
         function updateCount() {
 
             document.getElementById(
                 "workerCount"
             ).textContent =
                 Object.keys(workers).length;
+
         }
 
     </script>

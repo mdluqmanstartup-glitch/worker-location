@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.livetrackr.app",
+            "sha256_cert_fingerprints": [
+                "8D:2F:E5:21:1F:FA:C7:72:6C:EB:C4:6D:8F:1D:78:19:6C:DC:A7:0C:7A:4A:61:88:DA:7F:BD:6C:DF:67:99:B1"
+            ]
+        }
+    }
+]
