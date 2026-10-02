@@ -31,8 +31,13 @@
             background: #f3f4f6;
         }
 
+        /* =========================
+           HEADER
+        ========================= */
+
         .header {
-            height: 70px;
+            min-height: 70px;
+
             background: #111827;
             color: white;
 
@@ -40,19 +45,74 @@
             align-items: center;
             justify-content: space-between;
 
-            padding: 0 25px;
+            padding: 10px 25px;
+
+            gap: 15px;
         }
 
         .header h1 {
             font-size: 24px;
+            line-height: 1.2;
         }
+
+        /* =========================
+           HEADER ACTIONS
+        ========================= */
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* =========================
+           SHARE BUTTON
+        ========================= */
+
+        #shareWorkerBtn {
+            background: #25D366;
+            color: white;
+
+            border: none;
+            border-radius: 12px;
+
+            padding: 10px 16px;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            white-space: nowrap;
+        }
+
+        #shareWorkerBtn:hover {
+            opacity: 0.9;
+        }
+
+        #shareWorkerBtn:active {
+            transform: scale(0.98);
+        }
+
+        /* =========================
+           WORKER COUNT
+        ========================= */
 
         .count {
             background: #22c55e;
+
             padding: 8px 14px;
+
             border-radius: 20px;
+
             font-weight: bold;
+
+            white-space: nowrap;
         }
+
+        /* =========================
+           MAP
+        ========================= */
 
         #map {
             width: 100%;
@@ -60,9 +120,15 @@
             min-height: 500px;
         }
 
+        /* =========================
+           WORKER LABEL
+        ========================= */
+
         .worker-label {
             background: white;
+
             border: 2px solid #111827;
+
             border-radius: 8px;
 
             padding: 5px 8px;
@@ -72,16 +138,87 @@
 
             color: #111827;
 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.2);
 
             white-space: nowrap;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .header {
+                min-height: 76px;
+
+                padding: 10px 12px;
+
+                gap: 8px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .header-actions {
+                gap: 6px;
+            }
+
+            #shareWorkerBtn {
+                padding: 8px 9px;
+                font-size: 12px;
+            }
+
+            .count {
+                padding: 8px 9px;
+                font-size: 12px;
+            }
+
+            #map {
+                height: calc(100vh - 76px);
+            }
+
+        }
+
+        /* =========================
+           SMALL MOBILE
+        ========================= */
+
+        @media (max-width: 450px) {
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                text-align: center;
+                font-size: 19px;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            #map {
+                height: calc(100vh - 125px);
+            }
+
         }
 
     </style>
 
 </head>
 
+
 <body>
+
+
+    <!-- =========================
+         HEADER
+    ========================= -->
 
     <div class="header">
 
@@ -89,15 +226,32 @@
             Worker Location Dashboard
         </h1>
 
-        <div class="count">
 
-            Workers:
-            <span id="workerCount">0</span>
+        <div class="header-actions">
+
+            <button
+                id="shareWorkerBtn"
+                onclick="shareWorkerLink()"
+            >
+                📲 Share Worker Link
+            </button>
+
+
+            <div class="count">
+
+                Workers:
+                <span id="workerCount">0</span>
+
+            </div>
 
         </div>
 
     </div>
 
+
+    <!-- =========================
+         MAP
+    ========================= -->
 
     <div id="map"></div>
 
@@ -107,11 +261,16 @@
         src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
+
     <!-- Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
 
 
     <script>
+
+        // =========================
+        // SOCKET
+        // =========================
 
         const socket = io();
 
@@ -139,110 +298,120 @@
         ).addTo(map);
 
 
+        // =========================
+        // WORKERS
+        // =========================
+
         const workers = {};
 
 
         // =========================
-        // WORKER LOCATION
+        // RECEIVE WORKER LOCATION
         // =========================
 
-        socket.on("worker-location", (data) => {
+        socket.on(
+            "worker-location",
+            (data) => {
 
-            const id = data.id;
-
-
-            // Create marker first time
-            if (!workers[id]) {
-
-                const icon = L.divIcon({
-
-                    className: "",
-
-                    html:
-                        `<div class="worker-label">
-                            ${data.code}
-                        </div>`,
-
-                    iconSize: [55, 35],
-
-                    iconAnchor: [27, 17]
-
-                });
+                const id = data.id;
 
 
-                workers[id] = L.marker(
-                    [
-                        data.latitude,
-                        data.longitude
-                    ],
-                    {
-                        icon: icon
-                    }
-                ).addTo(map);
+                // Create marker first time
+                if (!workers[id]) {
+
+                    const icon = L.divIcon({
+
+                        className: "",
+
+                        html:
+                            `<div class="worker-label">
+                                ${data.code}
+                            </div>`,
+
+                        iconSize: [55, 35],
+
+                        iconAnchor: [27, 17]
+
+                    });
+
+
+                    workers[id] =
+                        L.marker(
+                            [
+                                data.latitude,
+                                data.longitude
+                            ],
+                            {
+                                icon: icon
+                            }
+                        ).addTo(map);
+
+                }
+
+
+                // Move marker
+                workers[id].setLatLng([
+                    data.latitude,
+                    data.longitude
+                ]);
+
+
+                // Worker information
+                workers[id].bindPopup(`
+
+                    <b>${data.name}</b>
+
+                    <br><br>
+
+                    Code:
+                    ${data.code}
+
+                    <br>
+
+                    Accuracy:
+                    ${Math.round(data.accuracy)}
+                    meters
+
+                    <br>
+
+                    Last Update:
+                    ${new Date(data.time)
+                        .toLocaleTimeString()}
+
+                `);
+
+
+                updateCount();
 
             }
-
-
-            // Move marker
-
-            workers[id].setLatLng([
-                data.latitude,
-                data.longitude
-            ]);
-
-
-            // Worker information
-
-            workers[id].bindPopup(`
-
-                <b>${data.name}</b>
-
-                <br><br>
-
-                Code: ${data.code}
-
-                <br>
-
-                Accuracy:
-                ${Math.round(data.accuracy)}
-                meters
-
-                <br>
-
-                Last Update:
-                ${new Date(data.time)
-                    .toLocaleTimeString()}
-
-            `);
-
-
-            updateCount();
-
-        });
+        );
 
 
         // =========================
         // REMOVE WORKER
         // =========================
 
-        socket.on("worker-stop", (data) => {
+        socket.on(
+            "worker-stop",
+            (data) => {
 
-            const id = data.id;
+                const id = data.id;
 
 
-            if (workers[id]) {
+                if (workers[id]) {
 
-                map.removeLayer(
-                    workers[id]
-                );
+                    map.removeLayer(
+                        workers[id]
+                    );
 
-                delete workers[id];
+                    delete workers[id];
 
-                updateCount();
+                    updateCount();
+
+                }
 
             }
-
-        });
+        );
 
 
         // =========================
@@ -258,7 +427,37 @@
 
         }
 
+
+        // =========================
+        // SHARE WORKER LINK
+        // =========================
+
+        function shareWorkerLink() {
+
+            const workerLink =
+                window.location.origin +
+                "/worker.html";
+
+
+            const message =
+                "📍 Worker Location Sharing\n\n" +
+                "Please open this link and enter your name " +
+                "to share your live location:\n\n" +
+                workerLink;
+
+
+            const whatsappUrl =
+                "https://wa.me/?text=" +
+                encodeURIComponent(message);
+
+
+            // Open WhatsApp
+            window.location.href = whatsappUrl;
+
+        }
+
     </script>
+
 
 </body>
 
