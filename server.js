@@ -166,33 +166,12 @@ io.on("connection", (socket) => {
     // WORKER DISCONNECTED
     // ---------------------------------
 
+   
+    // Worker disconnected: keep the last known location
     socket.on("disconnect", () => {
-
-        if (workers.has(socket.id)) {
-
-            workers.delete(
-                socket.id
-            );
-
-
-            io.emit(
-                "worker-stop",
-                {
-                    id: socket.id
-                }
-            );
-
-        }
-
-
-        console.log(
-            "Disconnected:",
-            socket.id
-        );
-
+        console.log("Worker disconnected:", socket.id);
+        // Do not delete the last known location here.
     });
-
-});
 
 
 // =====================================
