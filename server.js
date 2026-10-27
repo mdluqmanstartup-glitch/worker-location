@@ -10,66 +10,39 @@ const io = new Server(server);
 
 const publicPath = path.join(__dirname, "public");
 
-// =====================================
-// ANDROID APP LINKS
-// =====================================
-
+// Android App Links
 app.use(
     "/.well-known",
-    express.static(
-        path.join(publicPath, ".well-known"),
-        {
-            dotfiles: "allow"
-        }
-    )
+    express.static(path.join(publicPath, ".well-known"), {
+        dotfiles: "allow"
+    })
 );
 
-// =====================================
-// STATIC FILES
-// =====================================
-
+// Static Files
 app.use(express.static(publicPath));
 
-// =====================================
-// WORKER PAGE
-// =====================================
-
+// Worker Page
 app.get("/", (req, res) => {
-    res.sendFile(
-        path.join(publicPath, "worker.html")
-    );
+    res.sendFile(path.join(publicPath, "worker.html"));
 });
 
 app.get("/worker.html", (req, res) => {
-    res.sendFile(
-        path.join(publicPath, "worker.html")
-    );
+    res.sendFile(path.join(publicPath, "worker.html"));
 });
 
-// =====================================
-// ADMIN PAGE
-// =====================================
-
+// Admin Page
 app.get("/admin.html", (req, res) => {
-    res.sendFile(
-        path.join(publicPath, "admin.html")
-    );
+    res.sendFile(path.join(publicPath, "admin.html"));
 });
 
-// =====================================
-// WORKERS STORAGE
-// =====================================
-
+// Workers Storage
 const workers = new Map();
 
-// =====================================
-// SOCKET.IO
-// =====================================
-
+// Socket.IO
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    // Send existing workers to newly connected clients
+    // Send existing workers to new clients
     for (const worker of workers.values()) {
         socket.emit("worker-location", worker);
     }
@@ -96,39 +69,31 @@ io.on("connection", (socket) => {
         };
 
         workers.set(socket.id, workerData);
-
-        // Broadcast updated location to everyone
         io.emit("worker-location", workerData);
     });
 
-    // Worker explicitly stopped sharing
+    // Explicitly stop sharing
     socket.on("worker-stop", () => {
-        if (workers.has(socket.id)) {
-            workers.delete(socket.id);
-
-            io.emit("worker-stop", {
-                id: socket.id
-            });
-        }
-
+        removeWorker(socket.id);
         console.log("Worker stopped:", socket.id);
     });
-// Remove worker when its connection disconnects
-socket.on("disconnect", () => {
-    console.log("Worker disconnected:", socket.id);
 
-    if (workers.has(socket.id)) {
-        workers.delete(socket.id);
-
-        io.emit("worker-stop", {
-            id: socket.id
-        });
-    }
+    // Remove disconnected worker
+    socket.on("disconnect", () => {
+        removeWorker(socket.id);
+        console.log("Worker disconnected:", socket.id);
+    });
 });
-// =====================================
-// SERVER
-// =====================================
 
+// Remove worker and notify dashboard
+function removeWorker(id) {
+    if (workers.has(id)) {
+        workers.delete(id);
+        io.emit("worker-stop", { id });
+    }
+}
+
+// Start Server
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, "0.0.0.0", () => {
