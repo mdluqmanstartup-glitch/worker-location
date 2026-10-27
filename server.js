@@ -113,14 +113,18 @@ io.on("connection", (socket) => {
 
         console.log("Worker stopped:", socket.id);
     });
+// Remove worker when its connection disconnects
+socket.on("disconnect", () => {
+    console.log("Worker disconnected:", socket.id);
 
-    // Keep the last known location on disconnect
-    socket.on("disconnect", () => {
-        console.log("Worker disconnected:", socket.id);
-        // Do not delete the last known location here.
-    });
+    if (workers.has(socket.id)) {
+        workers.delete(socket.id);
+
+        io.emit("worker-stop", {
+            id: socket.id
+        });
+    }
 });
-
 // =====================================
 // SERVER
 // =====================================
