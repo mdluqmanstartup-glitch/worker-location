@@ -256,7 +256,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-
     <script>
         const socket = io();
 
@@ -270,6 +269,8 @@
 
         let watchId = null;
         let sharing = false;
+        let nativeStarting = false;
+        let lastNativeStatus = "";
 
         function makeCode(name) {
             return name.trim().toUpperCase().substring(0, 3).padEnd(3, "-");
@@ -279,17 +280,112 @@
             statusTitle.textContent = title;
             status.textContent = message;
             statusDot.style.background = active ? "#16a34a" : "#9ca3af";
+            statusDot.style.boxShadow = active
+                ? "0 0 0 4px rgba(22,163,74,0.12)"
+                : "none";
         }
 
         function showSharingButtons(active) {
             sharing = active;
             startBtn.style.display = active ? "none" : "block";
             stopBtn.style.display = active ? "block" : "none";
+            startBtn.disabled = false;
+            stopBtn.disabled = false;
         }
+
+        function setNativeLocationStatus(message) {
+            const text = String(message || "");
+            const lower = text.toLowerCase();
+            lastNativeStatus = text;
+
+            if (lower.includes("stopped")) {
+                nativeStarting = false;
+                showSharingButtons(false);
+                setStatus("Location Sharing Inactive", text, false);
+                return;
+            }
+
+            if (
+                lower.includes("permission denied") ||
+                lower.includes("permission is required") ||
+                lower.includes("location is off") ||
+                lower.includes("enable location") ||
+                lower.includes("unable to") ||
+                lower.includes("could not start")
+            ) {
+                nativeStarting = false;
+                showSharingButtons(false);
+                setStatus("Location Sharing Inactive", text, false);
+                return;
+            }
+
+            if (lower.includes("already sharing")) {
+                nativeStarting = false;
+                showSharingButtons(true);
+                setStatus(
+                    "Already Sharing",
+                    "You are already sharing your location.",
+                    true
+                );
+                return;
+            }
+
+            if (lower.includes("location service started")) {
+                // This only confirms the service start request, not a fresh GPS fix.
+                nativeStarting = true;
+                setStatus(
+                    "Starting Location Sharing",
+                    "Waiting for your phone to provide a location fix...",
+                    false
+                );
+                return;
+            }
+
+            nativeStarting = true;
+            setStatus("Starting Location Sharing", text, false);
+        }
+
+        // Android MainActivity calls this function to update the page.
+        window.setNativeLocationStatus = setNativeLocationStatus;
 
         nameInput.addEventListener("input", () => {
             workerCode.textContent = makeCode(nameInput.value);
         });
+
+        function restoreAndroidState() {
+            if (!window.AndroidLocation) return;
+
+            try {
+                const savedName = window.AndroidLocation.getSavedName();
+                if (savedName) {
+                    nameInput.value = savedName;
+                    workerCode.textContent = makeCode(savedName);
+                } else {
+                    workerCode.textContent = makeCode(nameInput.value);
+                }
+
+                // isSharing() must be backed by a fresh location heartbeat in MainActivity.
+                const active = window.AndroidLocation.isSharing();
+                if (active) {
+                    nativeStarting = false;
+                    showSharingButtons(true);
+                    setStatus(
+                        "Already Sharing",
+                        "You are already sharing your location.",
+                        true
+                    );
+                } else if (!nativeStarting) {
+                    showSharingButtons(false);
+                    setStatus(
+                        "Location Sharing Inactive",
+                        "Your location is not being shared. Tap Start Sharing to begin.",
+                        false
+                    );
+                }
+            } catch (error) {
+                console.log("Could not restore Android state:", error);
+            }
+        }
 
         workerCode.textContent = makeCode(nameInput.value);
 
@@ -303,43 +399,37 @@
                 return;
             }
 
-            if (sharing) return;
+            if (sharing || nativeStarting) return;
 
-            // Android app: use the native foreground location service.
             if (window.AndroidLocation) {
-                showSharingButtons(true);
+                nativeStarting = true;
                 startBtn.disabled = true;
-
                 setStatus(
                     "Starting Location Sharing",
-                    "Please allow location permission if your phone asks.",
+                    "Checking permissions and phone Location settings...",
                     false
                 );
 
                 try {
                     window.AndroidLocation.startSharing(name);
                 } catch (error) {
+                    nativeStarting = false;
                     showSharingButtons(false);
-                    startBtn.disabled = false;
-
                     setStatus(
                         "Unable to Start",
                         "Please close and reopen the app, then try again.",
                         false
                     );
                 }
-
                 return;
             }
 
-            // Normal browser: use browser geolocation.
             if (!navigator.geolocation) {
                 alert("Location is not supported on this device.");
                 return;
             }
 
             showSharingButtons(true);
-
             setStatus(
                 "Waiting for Location",
                 "Please allow location access on your device.",
@@ -358,7 +448,6 @@
                     };
 
                     socket.emit("worker-location", locationData);
-
                     setStatus(
                         "Location Sharing Active",
                         "Your location is being shared.",
@@ -370,14 +459,8 @@
                         navigator.geolocation.clearWatch(watchId);
                         watchId = null;
                     }
-
                     showSharingButtons(false);
-
-                    setStatus(
-                        "Location Error",
-                        error.message,
-                        false
-                    );
+                    setStatus("Location Error", error.message, false);
                 },
                 {
                     enableHighAccuracy: true,
@@ -395,18 +478,16 @@
                 } catch (error) {
                     console.log("Could not stop Android service:", error);
                 }
+                nativeStarting = false;
             } else {
                 if (watchId !== null) {
                     navigator.geolocation.clearWatch(watchId);
                     watchId = null;
                 }
-
                 socket.emit("worker-stop");
             }
 
             showSharingButtons(false);
-            startBtn.disabled = false;
-
             setStatus(
                 "Location Sharing Inactive",
                 "Your location sharing has been stopped.",
@@ -414,14 +495,20 @@
             );
         });
 
-        // Socket status
-        socket.on("connect", () => {
-            console.log("Connected to location server.");
-        });
-
+        socket.on("connect", () => console.log("Connected to location server."));
         socket.on("connect_error", (error) => {
             console.log("Server connection error:", error.message);
         });
+
+        restoreAndroidState();
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) restoreAndroidState();
+        });
+        window.addEventListener("pageshow", restoreAndroidState);
+
+        if (window.AndroidLocation) {
+            window.setInterval(restoreAndroidState, 5000);
+        }
     </script>
 </body>
 </html>
